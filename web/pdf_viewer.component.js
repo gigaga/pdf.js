@@ -1,5 +1,3 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 /* Copyright 2014 Mozilla Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +14,8 @@
  */
 /*jshint globalstrict: false */
 /* globals PDFJS, PDFViewer, PDFPageView, TextLayerBuilder, PDFLinkService,
-           DefaultTextLayerFactory, AnnotationsLayerBuilder, PDFHistory,
-           DefaultAnnotationsLayerFactory, getFileName, ProgressBar */
+           DefaultTextLayerFactory, AnnotationLayerBuilder, PDFHistory,
+           DefaultAnnotationLayerFactory, getFileName, ProgressBar */
 
 // Initializing PDFJS global object (if still undefined)
 if (typeof PDFJS === 'undefined') {
@@ -37,8 +35,8 @@ if (typeof PDFJS === 'undefined') {
   PDFJS.PDFLinkService = PDFLinkService;
   PDFJS.TextLayerBuilder = TextLayerBuilder;
   PDFJS.DefaultTextLayerFactory = DefaultTextLayerFactory;
-  PDFJS.AnnotationsLayerBuilder = AnnotationsLayerBuilder;
-  PDFJS.DefaultAnnotationsLayerFactory = DefaultAnnotationsLayerFactory;
+  PDFJS.AnnotationLayerBuilder = AnnotationLayerBuilder;
+  PDFJS.DefaultAnnotationLayerFactory = DefaultAnnotationLayerFactory;
   PDFJS.PDFHistory = PDFHistory;
 
   PDFJS.getFileName = getFileName;

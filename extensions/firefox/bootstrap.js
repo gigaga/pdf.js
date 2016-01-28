@@ -1,5 +1,3 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 /* Copyright 2012 Mozilla Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +14,7 @@
  */
 /* jshint esnext:true */
 /* globals Components, Services, dump, XPCOMUtils, PdfStreamConverter,
-           PdfRedirector, APP_SHUTDOWN, PdfjsChromeUtils, PdfjsContentUtils,
+           APP_SHUTDOWN, PdfjsChromeUtils, PdfjsContentUtils,
            DEFAULT_PREFERENCES */
 
 'use strict';
@@ -32,9 +30,6 @@ const Cr = Components.results;
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
-
-var Ph = Cc['@mozilla.org/plugin/host;1'].getService(Ci.nsIPluginHost);
-var registerOverlayPreview = 'getPlayPreviewInfo' in Ph;
 
 function getBoolPref(pref, def) {
   try {
@@ -120,7 +115,6 @@ Factory.prototype = {
 
 var pdfStreamConverterFactory = new Factory();
 var pdfBaseUrl = null;
-var pdfRedirectorFactory = new Factory();
 var e10sEnabled = false;
 
 // As of Firefox 13 bootstrapped add-ons don't support automatic registering and
@@ -146,15 +140,6 @@ function startup(aData, aReason) {
   var pdfStreamConverterUrl = pdfBaseUrl + 'content/PdfStreamConverter.jsm';
   Cu.import(pdfStreamConverterUrl);
   pdfStreamConverterFactory.register(PdfStreamConverter);
-
-  if (registerOverlayPreview) {
-    var pdfRedirectorUrl = pdfBaseUrl + 'content/PdfRedirector.jsm';
-    Cu.import(pdfRedirectorUrl);
-    pdfRedirectorFactory.register(PdfRedirector);
-
-    Ph.registerPlayPreviewMimeType('application/pdf', true,
-      'data:application/x-moz-playpreview-pdfjs;,');
-  }
 
   try {
     let globalMM = Cc['@mozilla.org/globalmessagemanager;1']
@@ -189,15 +174,6 @@ function shutdown(aData, aReason) {
   // Unload the converter
   var pdfStreamConverterUrl = pdfBaseUrl + 'content/PdfStreamConverter.jsm';
   Cu.unload(pdfStreamConverterUrl);
-
-  if (registerOverlayPreview) {
-    pdfRedirectorFactory.unregister();
-    var pdfRedirectorUrl = pdfBaseUrl + 'content/PdfRedirector.jsm';
-    Cu.unload(pdfRedirectorUrl);
-    pdfRedirectorUrl = null;
-
-    Ph.unregisterPlayPreviewMimeType('application/pdf');
-  }
 
   PdfjsContentUtils.uninit();
   Cu.unload(pdfBaseUrl + 'content/PdfjsContentUtils.jsm');

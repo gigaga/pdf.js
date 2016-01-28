@@ -1,4 +1,3 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* Copyright 2013 Mozilla Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +13,7 @@
  * limitations under the License.
  */
 
-/* globals chrome, PDFJS, PDFViewerApplication */
+/* globals chrome, PDFJS, PDFViewerApplication, OverlayManager */
 'use strict';
 
 var ChromeCom = (function ChromeComClosure() {
@@ -64,7 +63,7 @@ var ChromeCom = (function ChromeComClosure() {
         var streamUrl = response.streamUrl;
         if (streamUrl) {
           console.log('Found data stream for ' + file);
-          PDFViewerApplication.open(streamUrl, 0, undefined, undefined, {
+          PDFViewerApplication.open(streamUrl, {
             length: response.contentLength
           });
           PDFViewerApplication.setTitleUsingUrl(file);
@@ -91,7 +90,7 @@ var ChromeCom = (function ChromeComClosure() {
         resolveLocalFileSystemURL(file, function onResolvedFSURL(fileEntry) {
           fileEntry.file(function(fileObject) {
             var blobUrl = URL.createObjectURL(fileObject);
-            PDFViewerApplication.open(blobUrl, 0, undefined, undefined, {
+            PDFViewerApplication.open(blobUrl, {
               length: fileObject.size
             });
           });
@@ -100,7 +99,7 @@ var ChromeCom = (function ChromeComClosure() {
           // usual way of getting the File's data (via the Web worker).
           console.warn('Cannot resolve file ' + file + ', ' + error.name + ' ' +
                        error.message);
-          PDFViewerApplication.open(file, 0);
+          PDFViewerApplication.open(file);
         });
         return;
       }
@@ -109,13 +108,128 @@ var ChromeCom = (function ChromeComClosure() {
         // There is no UI to input a different URL, so this assumption will hold
         // for now.
         setReferer(file, function() {
-          PDFViewerApplication.open(file, 0);
+          PDFViewerApplication.open(file);
         });
         return;
       }
-      PDFViewerApplication.open(file, 0);
+      if (/^file?:/.test(file)) {
+        if (top !== window && !/^file:/i.test(location.ancestorOrigins[0])) {
+          PDFViewerApplication.error('Blocked ' + location.ancestorOrigins[0] +
+              ' from loading ' + file + '. Refused to load a local file in a ' +
+              ' non-local page for security reasons.');
+          return;
+        }
+        isAllowedFileSchemeAccess(function(isAllowedAccess) {
+          if (isAllowedAccess) {
+            PDFViewerApplication.open(file);
+          } else {
+            requestAccessToLocalFile(file);
+          }
+        });
+        return;
+      }
+      PDFViewerApplication.open(file);
     });
   };
+
+  function isAllowedFileSchemeAccess(callback) {
+    ChromeCom.request('isAllowedFileSchemeAccess', null, callback);
+  }
+
+  function isRuntimeAvailable() {
+    try {
+      // When the extension is reloaded, the extension runtime is destroyed and
+      // the extension APIs become unavailable.
+      if (chrome.runtime && chrome.runtime.getManifest()) {
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  function reloadIfRuntimeIsUnavailable() {
+    if (!isRuntimeAvailable()) {
+      location.reload();
+    }
+  }
+
+  var chromeFileAccessOverlayPromise;
+  function requestAccessToLocalFile(fileUrl) {
+    var onCloseOverlay = null;
+    if (top !== window) {
+      // When the extension reloads after receiving new permissions, the pages
+      // have to be reloaded to restore the extension runtime. Auto-reload
+      // frames, because users should not have to reload the whole page just to
+      // update the viewer.
+      // Top-level frames are closed by Chrome upon reload, so there is no need
+      // for detecting unload of the top-level frame. Should this ever change
+      // (crbug.com/511670), then the user can just reload the tab.
+      window.addEventListener('focus', reloadIfRuntimeIsUnavailable);
+      onCloseOverlay = function() {
+        window.removeEventListener('focus', reloadIfRuntimeIsUnavailable);
+        reloadIfRuntimeIsUnavailable();
+        OverlayManager.close('chromeFileAccessOverlay');
+      };
+    }
+    if (!chromeFileAccessOverlayPromise) {
+      chromeFileAccessOverlayPromise = OverlayManager.register(
+          'chromeFileAccessOverlay', onCloseOverlay, true);
+    }
+    chromeFileAccessOverlayPromise.then(function() {
+      var iconPath = chrome.runtime.getManifest().icons[48];
+      document.getElementById('chrome-pdfjs-logo-bg').style.backgroundImage =
+        'url(' + chrome.runtime.getURL(iconPath) + ')';
+
+      // Use Chrome's definition of UI language instead of PDF.js's #lang=...,
+      // because the shown string should match the UI at chrome://extensions.
+      // These strings are from chrome/app/resources/generated_resources_*.xtb.
+      var i18nFileAccessLabel =
+//#include chrome-i18n-allow-access-to-file-urls.json
+        [chrome.i18n.getUILanguage && chrome.i18n.getUILanguage()];
+
+      if (i18nFileAccessLabel) {
+        document.getElementById('chrome-file-access-label').textContent =
+          i18nFileAccessLabel;
+      }
+
+      var link = document.getElementById('chrome-link-to-extensions-page');
+      link.href = 'chrome://extensions/?id=' + chrome.runtime.id;
+      link.onclick = function(e) {
+        // Direct navigation to chrome:// URLs is blocked by Chrome, so we
+        // have to ask the background page to open chrome://extensions/?id=...
+        e.preventDefault();
+        // Open in the current tab by default, because toggling the file access
+        // checkbox causes the extension to reload, and Chrome will close all
+        // tabs upon reload.
+        ChromeCom.request('openExtensionsPageForFileAccess', {
+          newTab: e.ctrlKey || e.metaKey || e.button === 1 || window !== top
+        });
+      };
+
+      // Show which file is being opened to help the user with understanding
+      // why this permission request is shown.
+      document.getElementById('chrome-url-of-local-file').textContent = fileUrl;
+
+      OverlayManager.open('chromeFileAccessOverlay');
+    });
+  }
+
+  if (window === top) {
+    // Chrome closes all extension tabs (crbug.com/511670) when the extension
+    // reloads. To counter this, the tab URL and history state is saved to
+    // localStorage and restored by extension-router.js.
+    // Unfortunately, the window and tab index are not restored. And if it was
+    // the only tab in an incognito window, then the tab is not restored either.
+    addEventListener('unload', function() {
+      // If the runtime is still available, the unload is most likely a normal
+      // tab closure. Otherwise it is most likely an extension reload.
+      if (!isRuntimeAvailable()) {
+        localStorage.setItem(
+          'unload-' + Date.now() + '-' + document.hidden + '-' + location.href,
+          JSON.stringify(history.state));
+      }
+    });
+  }
 
   // This port is used for several purposes:
   // 1. When disconnected, the background page knows that the frame has unload.
@@ -160,7 +274,7 @@ var ChromeCom = (function ChromeComClosure() {
     function onDisconnect() {
       // When the connection fails, ignore the error and call the callback.
       port = null;
-      onCompleted();
+      callback();
     }
     function onCompleted() {
       port.onDisconnect.removeListener(onDisconnect);
