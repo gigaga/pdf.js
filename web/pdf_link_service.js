@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* globals PDFViewer, PDFHistory, PDFViewerApplication, Promise, parseQueryString */
+/* globals PDFViewer, PDFHistory, PDFViewerApplicationn Promise, parseQueryString */
 
 'use strict';
 
@@ -31,8 +31,9 @@ var PDFLinkService = (function () {
     this.pdfDocument = null;
     this.pdfViewer = null;
     this.pdfHistory = null;
-	this.pdfViewerApplication = null;
-
+	// FIX gigaga BEGIN
+	this.pdfViewerApplication  = null;
+	// FIX gigaga END
     this._pagesRefCache = null;
   }
 
@@ -47,14 +48,14 @@ var PDFLinkService = (function () {
       this.pdfViewer = pdfViewer;
     },
 
-	setApplication: function PDFLinkService_setApplication(pdfViewerApplication) {
-      this.pdfViewerApplication = pdfViewerApplication;
-    },
-
     setHistory: function PDFLinkService_setHistory(pdfHistory) {
       this.pdfHistory = pdfHistory;
     },
-
+	// FIX gigaga BEGIN
+	setApplication: function PDFLinkService_setApplication(pdfViewerApplication) {
+      this.pdfViewerApplication = pdfViewerApplication;
+    },
+	// FIX gigaga END
     /**
      * @returns {number}
      */
@@ -117,7 +118,8 @@ var PDFLinkService = (function () {
         destString = dest;
         destinationPromise = this.pdfDocument.getDestination(dest);
       } else {
-        if (dest.file) {
+		// FIX gigaga BEGIN
+		if (dest.file) {
             if (this.pdfViewerApplication.openEvent) {
                 this.pdfViewerApplication.openEvent(dest.file);
             } else {
@@ -125,6 +127,7 @@ var PDFLinkService = (function () {
               this.pdfViewerApplication.open(dest.file);
             }
         }
+		// FIX gigaga END
         destinationPromise = Promise.resolve(dest);
       }
       destinationPromise.then(function(destination) {

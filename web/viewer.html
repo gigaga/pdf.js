@@ -39,9 +39,9 @@ See https://github.com/adobe-type-tools/cmap-resources
 <!--#include viewer-snippet-chrome-extension.html-->
 <!--#endif-->
 
-    <link rel="stylesheet" href="viewer.css"/>
+    <link rel="stylesheet" href="viewer.css">
 <!--#if !PRODUCTION-->
-    <link rel="resource" type="application/l10n" href="locale/locale.properties"/>
+    <link rel="resource" type="application/l10n" href="locale/locale.properties">
 <!--#endif-->
 
 <!--#if !(MOZCENTRAL || CHROME || MINIFIED)-->
@@ -74,8 +74,9 @@ See https://github.com/adobe-type-tools/cmap-resources
     <script src="pdf_viewer.js"></script>
     <script src="pdf_thumbnail_view.js"></script>
     <script src="pdf_thumbnail_viewer.js"></script>
-    <script src="pdf_outline_view.js"></script>
-    <script src="pdf_attachment_view.js"></script>
+    <script src="pdf_sidebar.js"></script>
+    <script src="pdf_outline_viewer.js"></script>
+    <script src="pdf_attachment_viewer.js"></script>
     <script src="pdf_find_bar.js"></script>
     <script src="pdf_find_controller.js"></script>
     <script src="pdf_history.js"></script>
@@ -151,6 +152,10 @@ See https://github.com/adobe-type-tools/cmap-resources
               <span data-l10n-id="presentation_mode_label">Presentation Mode</span>
             </button>
 
+            <button id="secondaryOpenFile" class="secondaryToolbarButton openFile visibleLargeView" title="Open File" tabindex="52" data-l10n-id="open_file">
+              <span data-l10n-id="open_file_label">Open</span>
+            </button>
+
             <button id="secondaryPrint" class="secondaryToolbarButton print visibleMediumView" title="Print" tabindex="53" data-l10n-id="print">
               <span data-l10n-id="print_label">Print</span>
             </button>
@@ -222,6 +227,10 @@ See https://github.com/adobe-type-tools/cmap-resources
               <div id="toolbarViewerRight">
                 <button id="presentationMode" class="toolbarButton presentationMode hiddenLargeView" title="Switch to Presentation Mode" tabindex="31" data-l10n-id="presentation_mode">
                   <span data-l10n-id="presentation_mode_label">Presentation Mode</span>
+                </button>
+
+                <button id="openFile" class="toolbarButton openFile hiddenLargeView" title="Open File" tabindex="32" data-l10n-id="open_file">
+                  <span data-l10n-id="open_file_label">Open</span>
                 </button>
 
                 <button id="print" class="toolbarButton print hiddenMediumView" title="Print" tabindex="33" data-l10n-id="print">
@@ -324,7 +333,7 @@ See https://github.com/adobe-type-tools/cmap-resources
             </div>
             <div class="row">
               <!-- The type="password" attribute is set via script, to prevent warnings in Firefox for all http:// documents. -->
-              <input id="password" class="toolbarField" />
+              <input id="password" class="toolbarField">
             </div>
             <div class="buttonRow">
               <button id="passwordCancel" class="overlayButton"><span data-l10n-id="password_cancel">Cancel</span></button>
