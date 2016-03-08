@@ -124,7 +124,11 @@ var PDFLinkService = (function () {
                 this.pdfViewerApplication.openEvent(dest.file);
             } else {
               this.pdfViewerApplication.initialBookmark=null;
-              this.pdfViewerApplication.open(dest.file);
+			  var url = window.location.pathname;
+			  var currentPDF = this.pdfViewerApplication.url;
+			  var currentFolder = url.substring(0, url.lastIndexOf('/'))+'/'+currentPDF;
+			  currentFolder = currentFolder.substring(0, currentFolder.lastIndexOf('/'));
+              this.pdfViewerApplication.open(currentFolder+'/'+dest.file);
             }
         }
 		// FIX gigaga END
