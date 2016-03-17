@@ -438,7 +438,9 @@ var DEFAULT_PREFERENCES = {
   sidebarViewOnLoad: 0,
   enableHandToolOnLoad: false,
   enableWebGL: false,
-  pdfBugEnabled: false,
+  // FIX gigaga BEGIN
+  pdfBugEnabled: true,
+  // FIX gigaga END
   disableRange: false,
   disableStream: false,
   disableAutoFetch: false,
