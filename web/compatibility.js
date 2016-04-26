@@ -572,7 +572,9 @@ if (typeof PDFJS === 'undefined') {
   var isEmbeddedIE = (navigator.userAgent.indexOf('Trident') >= 0 &&
                       window.parent !== window);
   if (isEmbeddedIE) {
-    PDFJS.disableFullscreen = true;
+	// FIX gigaga BEGIN
+    PDFJS.disableFullscreen = false;
+	// FIX gigaga BEGIN
   }
 })();
 
