@@ -700,9 +700,11 @@ var PDFViewerApplication = {
     function downloadByUrl() {
       downloadManager.downloadUrl(url, filename);
     }
-
+c
     var url = this.url.split('#')[0];
-    var filename = getPDFFileNameFromURL(url);
+    // FIX gigaga BEGIN
+    var filename = this.pdfDocumentProperties.filename || getPDFFileNameFromURL(url);
+    // FIX gigaga END
     var downloadManager = new DownloadManager();
     downloadManager.onerror = function (err) {
       // This error won't really be helpful because it's likely the

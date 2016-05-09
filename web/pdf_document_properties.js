@@ -119,7 +119,9 @@ var PDFDocumentProperties = (function PDFDocumentPropertiesClosure() {
       // Get the document properties.
       this.pdfDocument.getMetadata().then(function(data) {
         var content = {
-          'fileName': getPDFFileNameFromURL(this.url),
+          // FIX gigaga BEGIN
+          'fileName': this.filename||getPDFFileNameFromURL(this.url),
+          // FIX gigaga END
           'fileSize': this._parseFileSize(),
           'title': data.info.Title,
           'author': data.info.Author,
