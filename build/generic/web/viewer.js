@@ -3263,7 +3263,9 @@ var PDFDocumentProperties = (function PDFDocumentPropertiesClosure() {
       // Get the document properties.
       this.pdfDocument.getMetadata().then(function(data) {
         var content = {
-          'fileName': getPDFFileNameFromURL(this.url),
+          // FIX gigaga BEGIN
+          'fileName': this.filename||getPDFFileNameFromURL(this.url),
+          // FIX gigaga END
           'fileSize': this._parseFileSize(),
           'title': data.info.Title,
           'author': data.info.Author,
@@ -7010,7 +7012,9 @@ var PDFViewerApplication = {
     }
 
     var url = this.url.split('#')[0];
-    var filename = getPDFFileNameFromURL(url);
+    // FIX gigaga BEGIN
+    var filename = this.pdfDocumentProperties.filename || getPDFFileNameFromURL(url);
+    // FIX gigaga END
     var downloadManager = new DownloadManager();
     downloadManager.onerror = function (err) {
       // This error won't really be helpful because it's likely the
