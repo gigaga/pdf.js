@@ -34927,6 +34927,11 @@ var Catalog = (function CatalogClosure() {
           if (count === 0) {
             checkAllKids = true;
           }
+		  
+		  // FIX gigaga BEGIN
+		  checkAllKids = true;
+		  // FIX gigaga END
+		  
           // Skip nodes where the page can't be.
           if (currentPageIndex + count <= pageIndex) {
             currentPageIndex += count;
